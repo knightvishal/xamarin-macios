@@ -169,17 +169,24 @@ namespace MonoTests.System.Net.Http
 			TestRuntime.AssertSystemVersion (PlatformName.MacOSX, 10, 9, throwIfOtherPlatform: false);
 			TestRuntime.AssertSystemVersion (PlatformName.iOS, 7, 0, throwIfOtherPlatform: false);
 
-#if __MACOS__
+#if __MACOS__ && MARTIN_FIXME
 			if (handlerType == typeof (NSUrlSessionHandler) && TestRuntime.CheckSystemVersion (PlatformName.MacOSX, 10, 10, 0) && !TestRuntime.CheckSystemVersion (PlatformName.MacOSX, 10, 11, 0))
 				Assert.Ignore ("Fails on macOS 10.10: https://github.com/xamarin/maccore/issues/1645");
 #endif
 
-			bool servicePointManagerCbWasExcuted = false;
+			bool validationCbWasExecuted = false;
+			bool customValidationCbWasExecuted = false;
+			bool invalidServicePointManagerCbWasExcuted = false;
 			bool done = false;
 			Exception ex = null;
 			HttpResponseMessage result = null;
 
 			var handler = GetHandler (handlerType);
+			handler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) => {
+				customValidationCbWasExecuted = true;
+				// return false, since we want to test that the exception is raised
+				return false;
+			}
 			if (handler is NSUrlSessionHandler ns) {
 				ns.TrustOverride += (a,b) => {
 					servicePointManagerCbWasExcuted = true;
@@ -188,9 +195,7 @@ namespace MonoTests.System.Net.Http
 				};
 			} else {
 				ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => {
-					servicePointManagerCbWasExcuted = true;
-					// return false, since we want to test that the exception is raised
-					return false;
+					invalidServicePointManagerCbWasExcuted = true;
 				};
 			}
 
@@ -213,6 +218,10 @@ namespace MonoTests.System.Net.Http
 			if (!done) { // timeouts happen in the bots due to dns issues, connection issues etc.. we do not want to fail
 				Assert.Inconclusive ("Request timedout.");
 			} else {
+				// the ServicePointManager.ServerCertificateValidationCallback will never be executed.
+				Assert.False(invalidServicePointManagerCbWasExcuted);
+				// the HttpClientHandler.ServerCertificateCustomValidationCallback will always be executed.
+				Assert.True(customValidationCbWasExecuted);
 				// assert the exception type
 				Assert.IsNotNull (ex, (result == null)? "Expected exception is missing and got no result" : $"Expected exception but got {result.Content.ReadAsStringAsync ().Result}");
 				Assert.IsInstanceOfType (typeof (HttpRequestException), ex);
