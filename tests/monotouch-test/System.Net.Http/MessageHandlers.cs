@@ -182,20 +182,23 @@ namespace MonoTests.System.Net.Http
 			HttpResponseMessage result = null;
 
 			var handler = GetHandler (handlerType);
-			handler.ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) => {
-				customValidationCbWasExecuted = true;
-				// return false, since we want to test that the exception is raised
-				return false;
+			if (handler is HttpClientHandler ch) {
+				ch.ServerCertificateCustomValidationCallback = (sender, certificate, chain, errors) => {
+					validationCbWasExecuted = true;
+					// return false, since we want to test that the exception is raised
+					return false;
+				};
 			}
 			if (handler is NSUrlSessionHandler ns) {
 				ns.TrustOverride += (a,b) => {
-					servicePointManagerCbWasExcuted = true;
+					validationCbWasExecuted = true;
 					// return false, since we want to test that the exception is raised
 					return false;
 				};
 			} else {
 				ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => {
 					invalidServicePointManagerCbWasExcuted = true;
+					return false;
 				};
 			}
 
@@ -220,8 +223,7 @@ namespace MonoTests.System.Net.Http
 			} else {
 				// the ServicePointManager.ServerCertificateValidationCallback will never be executed.
 				Assert.False(invalidServicePointManagerCbWasExcuted);
-				// the HttpClientHandler.ServerCertificateCustomValidationCallback will always be executed.
-				Assert.True(customValidationCbWasExecuted);
+				Assert.True(validationCbWasExecuted);
 				// assert the exception type
 				Assert.IsNotNull (ex, (result == null)? "Expected exception is missing and got no result" : $"Expected exception but got {result.Content.ReadAsStringAsync ().Result}");
 				Assert.IsInstanceOfType (typeof (HttpRequestException), ex);
