@@ -14,6 +14,7 @@ using System.IO;
 
 using NUnit.Framework;
 using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Text;
 using Foundation;
 #if MONOMAC
@@ -228,7 +229,7 @@ namespace MonoTests.System.Net.Http
 				Assert.IsNotNull (ex, (result == null)? "Expected exception is missing and got no result" : $"Expected exception but got {result.Content.ReadAsStringAsync ().Result}");
 				Assert.IsInstanceOfType (typeof (HttpRequestException), ex);
 				Assert.IsNotNull (ex.InnerException);
-				Assert.IsInstanceOfType (typeof (WebException), ex.InnerException);
+				Assert.IsInstanceOfType (typeof (AuthenticationException), ex.InnerException);
 			}
 		}
 
