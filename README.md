@@ -10,9 +10,9 @@ These SDKs allow us to create native iOS, tvOS, watchOS and macOS applications u
 
 This repository is where we do development for the Xamarin.iOS and Xamarin.Mac SDKs. There are a few ways that you can contribute, for example:
 
-- [Submit bugs and feature requests](https://github.com/xamarin/xamarin-macios/wiki/Submitting-Bugs-&-Suggestions)
-- [Review source code changes](https://github.com/xamarin/xamarin-macios/pulls)
-- [Submit pull requests](https://github.com/xamarin/xamarin-macios/wiki/How-to-Contribute#pull-requests) to resolve issues and fix bugs
+- [Submit bugs and feature requests.](https://github.com/xamarin/xamarin-macios/wiki/Submitting-Bugs-&-Suggestions)
+- [Review source code changes.](https://github.com/xamarin/xamarin-macios/pulls)
+- [Submit pull requests.](https://github.com/xamarin/xamarin-macios/wiki/How-to-Contribute#pull-requests) to resolve issues and fix bugs
 
 ## Contributing
 
